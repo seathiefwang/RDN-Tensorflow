@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 CUDA_VISIBLE_DEVICES=0 python3 train.py \
-                                 --dataset /media/mumu/00003799000C7B90/WorkSpace/super-resolution/data/CelebASubset \
+                                 --dataset data/DIV2K \
                                  --imgsize 128 \
                                  --scale 4 \
                                  --globallayers 16 \
