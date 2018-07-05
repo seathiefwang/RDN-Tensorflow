@@ -8,5 +8,5 @@ CUDA_VISIBLE_DEVICES=0 python3 train.py \
                                  --featuresize 64 \
                                  --batchsize 10 \
                                  --savedir saved_models \
-                                 --iterations 1000 \
+                                 --iterations 10000 \
                                  --usepre 0

@@ -31,11 +31,9 @@ network = RDN(down_size,args.globallayers,args.locallayers,args.featuresize,scal
 network.resume(args.savedir)
 if args.image:
     x = Image.open(args.image).convert('RGB')
-    x = data.preprocess(np.array(x))
-    predict(x, os.path.basename(args.image))
+    predict(np.array(x), os.path.basename(args.image))
 else:
     for filename in os.listdir(args.dataset):
         x = Image.open(args.dataset+'/'+filename).convert('RGB')
-        x = data.preprocess(np.array(x))
-        predict(x, filename)
+        predict(np.array(x), filename)
 
