@@ -18,7 +18,7 @@ class RDN(object):
         self.input = x = tf.placeholder(tf.float32,[None,None,None,output_channels])
         #Placeholder for upscaled image ground-truth
         self.target = y = tf.placeholder(tf.float32,[None,None,None,output_channels])
-    
+
         self.is_training = tf.placeholder(tf.bool, name='is_training')
         """
         Preprocessing as mentioned in the paper, by subtracting the mean
@@ -48,21 +48,22 @@ class RDN(object):
 
         x = x + x1
 
-        x = utils.upsample(x,scale,feature_size,None)
+        x = utils.upsample(x,scale,feature_size)
 
-        output = x 
+        #output = slim.conv2d(x,output_channels,[3,3])
+        output = tf.layers.conv2d(x, output_channels, (3, 3), padding='same', use_bias=False)
 
         #l1 loss
         self.loss = tf.reduce_mean(tf.losses.absolute_difference(image_target,output))
-        
+
         self.out = tf.clip_by_value(output+mean_x,0.0,255.0)
 
         #Calculating Peak Signal-to-noise-ratio
         #Using equations from here: https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio
-        mse = tf.reduce_mean(tf.squared_difference(image_target,output))    
+        mse = tf.reduce_mean(tf.squared_difference(image_target,output))
         PSNR = tf.constant(255**2,dtype=tf.float32)/mse
         PSNR = tf.constant(10,dtype=tf.float32)*utils.log10(PSNR)
-    
+
         #Scalar to keep track for loss
         tf.summary.scalar("loss",self.loss)
         tf.summary.scalar("PSNR",PSNR)
@@ -70,12 +71,12 @@ class RDN(object):
         tf.summary.image("input_image",tf.cast(self.input,tf.uint8))
         tf.summary.image("target_image",tf.cast(self.target,tf.uint8))
         tf.summary.image("output_image",tf.cast(self.out,tf.uint8))
-        
+
         #Tensorflow graph setup... session, saver, etc.
         self.sess = tf.Session()
         self.saver = tf.train.Saver()
         print("Done building!")
-    
+
     """
     Save the current state of the network to file
     """
@@ -83,15 +84,15 @@ class RDN(object):
         print("Saving...")
         self.saver.save(self.sess,savedir+"/model")
         print("Saved!")
-        
+
     """
     Resume network from previously saved weights
     """
     def resume(self,savedir='saved_models'):
         print("Restoring...")
         self.saver.restore(self.sess,tf.train.latest_checkpoint(savedir))
-        print("Restored!")  
-       
+        print("Restored!")
+
     def predict(self,x):
         print('Predicting...')
         return self.sess.run(self.out, feed_dict={self.input:[x],self.is_training:False})
@@ -158,8 +159,8 @@ class RDN(object):
                 if i % 20 == 0:
                     #Write train summary for this step
                     train_writer.add_summary(summary,i)
-                
+
                 if (i+1) % (iterations//5) == 0:
                     self.save()
-            #Save our trained model     
+            #Save our trained model
             self.save()
