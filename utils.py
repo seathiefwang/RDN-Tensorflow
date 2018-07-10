@@ -10,7 +10,7 @@ def resDenseBlock(x, channels=64, layers=8, kernel_size=[3,3], scale=1):
     outputs = [x]
     rates = [1,1,1,1,1,1,1,1]
     for i in range(layers):
-        output = blockLayer(tf.concat(outputs[:i],3) if i>=1 else x, channels+i*64, rates[i])
+        output = blockLayer(tf.concat(outputs[:i],3) if i>=1 else x, channels, rates[i])
         outputs.append(output)
 
     output = tf.concat(outputs, 3)
