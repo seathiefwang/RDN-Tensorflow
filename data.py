@@ -8,7 +8,7 @@ train_set = []
 test_set = []
 batch_index = 0
 
-def load_dataset(data_dir, img_size):
+def load_dataset(data_dir, test_dir, img_size):
     global train_set
     global test_set
     imgs = []
@@ -27,19 +27,29 @@ def load_dataset(data_dir, img_size):
                 imgs.append(tmp[q*img_size:(q+1)*img_size, r*img_size:(r+1)*img_size, :])
         except:
             print("oops! file:"+data_dir+'/'+files[i])
-
-    test_size = min(20, int(len(imgs)*0.2))
     random.shuffle(imgs)
-    test_set = imgs[:test_size]
+    if test_dir != '' and os.path.isdir(test_dir):
+        for filename in os.listdir(test_dir):
+            try:
+                tmp = scipy.misc.imread(test_dir+'/'+filename)
+                test_set.append(tmp)
+            except:
+                print("oops! file:"+data_dir+'/'+files[i])
+        test_size = 0
+        test_set = np.asarray(test_set)
+    else:
+        test_size = min(20, int(len(imgs)*0.2))
+        test_set = imgs[:test_size]
     train_set = imgs[test_size:]
-    print('imgs count:', len(train_set))
+    print('trainset count:{}, testset count:{}'.format(len(train_set), len(test_set)))
     return
 
-def get_test_set(original_size, shrunk_size):
-    imgs = test_set
-    x = [scipy.misc.imresize(imgs[i], (shrunk_size,shrunk_size)) for i in range(len(imgs))]
-    y = test_set
-    return x,y
+def get_test_set(original_size, scale):
+    x = []
+    for img in test_set:
+        w, h, c = img.shape
+        x.append(scipy.misc.imresize(img, (w//scale, h//scale)))
+    return x, test_set
 
 
 def get_batch(batch_size, original_size, shrunk_size):

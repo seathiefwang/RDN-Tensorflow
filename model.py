@@ -62,11 +62,11 @@ class RDN(object):
         #Using equations from here: https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio
         mse = tf.reduce_mean(tf.squared_difference(image_target,output))
         PSNR = tf.constant(255**2,dtype=tf.float32)/mse
-        PSNR = tf.constant(10,dtype=tf.float32)*utils.log10(PSNR)
+        self.PSNR = tf.constant(10,dtype=tf.float32)*utils.log10(PSNR)
 
         #Scalar to keep track for loss
         tf.summary.scalar("loss",self.loss)
-        tf.summary.scalar("PSNR",PSNR)
+        tf.summary.scalar("PSNR",self.PSNR)
         #Image summaries for input, target, and output
         tf.summary.image("input_image",tf.cast(self.input,tf.uint8))
         tf.summary.image("target_image",tf.cast(self.target,tf.uint8))
@@ -118,7 +118,7 @@ class RDN(object):
         #Just a tf thing, to merge all summaries into one
         merged = tf.summary.merge_all()
         #Using adam optimizer as mentioned in the paper
-        optimizer = tf.train.AdamOptimizer(1e-4)
+        optimizer = tf.train.AdamOptimizer(2e-4)
         #This is the train operation for our objective
         train_op = optimizer.minimize(self.loss)
         #Operation to initialize all variables
@@ -137,7 +137,8 @@ class RDN(object):
             if test_exists:
                 test_writer = tf.summary.FileWriter(save_dir+"/test",sess.graph)
                 test_x,test_y = self.test_data(*self.test_args)
-                test_feed = {self.input:test_x,self.target:test_y,self.is_training:False}
+                #test_feed = {self.input:test_x,self.target:test_y,self.is_training:False}
+                
 
             #This is our training loop
             for i in tqdm(range(iterations)):
@@ -152,11 +153,21 @@ class RDN(object):
                 #Run the train op and calculate the train summary
                 summary,_ = sess.run([merged,train_op],feed)
                 #If we're testing, don't train on test set. But do calculate summary
-                if test_exists and i%50==0:
-                    t_summary = sess.run(merged,test_feed)
-                    #Write test summary
-                    test_writer.add_summary(t_summary,i)
-                if i % 20 == 0:
+                if test_exists and i%1000==0:
+                    #t_summary = sess.run(merged,test_feed)
+                    #test_writer.add_summary(t_summary,i)
+                    tloss, tpsnr = 0, 0
+                    length = len(test_x)
+                    for idx in range(length):
+                        test_feed = {self.input:[test_x[idx]],self.target:[test_y[idx]],self.is_training:False}
+                        loss, psnr = sess.run([self.loss, self.PSNR], test_feed)
+                        tloss, tpsnr = tloss+loss, tpsnr+psnr
+                    summary_loss, summary_psnr = tf.Summary(), tf.Summary()
+                    summary_loss.value.add(tag="loss", simple_value=tloss/length)
+                    summary_psnr.value.add(tag="PSNR", simple_value=tpsnr/length)
+                    test_writer.add_summary(summary_loss, i)
+                    test_writer.add_summary(summary_psnr, i)
+                if i % 100 == 0:
                     #Write train summary for this step
                     train_writer.add_summary(summary,i)
 

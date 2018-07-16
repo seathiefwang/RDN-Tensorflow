@@ -26,7 +26,7 @@ def upsample(x, scale=2, features=64):
             output = tf.layers.conv2d(output, 4*features, (3, 3), padding='same', use_bias=False)
             output = pixelshuffle(output, 2)
     elif scale == 3:
-        output = tf.layers.conv2d(x, 9*features, (3, 3), padding='same', use_bias=False)
+        output = tf.layers.conv2d(output, 9*features, (3, 3), padding='same', use_bias=False)
         output = pixelshuffle(output, 3)
     else:
         raise NotImplementedError

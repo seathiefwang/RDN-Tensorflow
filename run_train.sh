@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 CUDA_VISIBLE_DEVICES=0 python3 train.py \
-                                 --dataset data/DIV2K \
-                                 --imgsize 128 \
+                                 --dataset DIV2k  \
+                                 --testset '' \
+                                 --imgsize 156 \
                                  --scale 4 \
-                                 --globallayers 16 \
-                                 --locallayers 8 \
+                                 --globallayers 8 \
+                                 --locallayers 4 \
                                  --featuresize 64 \
-                                 --batchsize 10 \
+                                 --batchsize 16 \
                                  --savedir saved_models \
-                                 --iterations 10000 \
+                                 --iterations 100000 \
                                  --usepre 0

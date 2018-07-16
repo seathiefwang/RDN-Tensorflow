@@ -19,7 +19,7 @@ Download DIV2K training data.[DIV2K](http://data.vision.ee.ethz.ch/cvl/DIV2K/DIV
 
 ### Begin to train
 
-run `./run_train.sh`
+run `sh run_train.sh`
 ```
 #!/usr/bin/env bash
 CUDA_VISIBLE_DEVICES=0 python3 train.py \
